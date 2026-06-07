@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HWN Intensive ม.1/11</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* สีตัวอักษร */
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent: #3b82f6;
+            
+            /* การตั้งค่าเอฟเฟกต์กระจก (Glassmorphism) */
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            /* พื้นหลังไล่สีอ่อนๆ เพื่อให้กรอบกระจกสีขาวดูโดดเด่น */
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%), linear-gradient(to right, #e2e2e2, #c9d6ff);
+            background-blend-mode: multiply;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* คลาสสำหรับทำเอฟเฟกต์กระจก */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* ส่วนหัว (Header) */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 20px;
+            text-align: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        /* พื้นที่เนื้อหาหลัก */
+        main {
+            flex: 1;
+            padding: 0 20px 100px 20px; /* เผื่อพื้นที่ด้านล่างไม่ให้ถูกเมนูบัง */
+        }
+
+        /* ซ่อนหน้าอื่นๆ ที่ไม่ได้เลือก */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* กล่องเนื้อหา (Cards) */
+        .card {
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative; /* เพิ่มเพื่อให้ปุ่มกล้องจัดตำแหน่งเทียบกับกล่องได้ */
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-right: 35px; /* เพิ่ม padding ขวาเพื่อไม่ให้ข้อความหัวข้อชนกับปุ่มกล้อง */
+        }
+
+        .card h2 i {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        /* ไอคอนกล้องสแกน QR Code ด้านบนขวาของกล่อง */
+        .scan-btn {
+            position: absolute;
+            top: 22px;
+            right: 25px;
+            font-size: 1.2rem;
+            color: var(--accent);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            padding: 5px;
+        }
+
+        .scan-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* การจัดการรูปภาพตารางสอนให้เลื่อนดูบนมือถือได้ */
+        .schedule-container {
+            width: 100%;
+            overflow-x: auto; /* อนุญาตให้เลื่อนซ้ายขวาได้ */
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .schedule-container img {
+            width: 800px; /* กำหนดความกว้างขั้นต่ำเพื่อไม่ให้ตัวหนังสือเล็กเกินไป */
+            max-width: none;
+            display: block;
+        }
+
+        /* เมนูนำทางด้านล่าง (Bottom Navigation) */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 10px 25px 10px;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: 25%;
+        }
+
+        .nav-item i {
+            font-size: 1.3rem;
+            margin-bottom: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item.active i {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="glass">
+        <h1>HWN Intensive</h1>
+        <p>ชั้นมัธยมศึกษาปีที่ 1/11</p>
+    </header>
+
+    <main>
+        <section id="home" class="page-section active">
+            <div class="card glass">
+                <h2><i class="fa-solid fa-hand-sparkles"></i> ยินดีต้อนรับ</h2>
+                <div class="scan-btn" onclick="startQRScanner()">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+                <p>เข้าสู่เว็บไซต์ศูนย์กลางข้อมูลของห้องเรียนพิเศษ HWN ม.1/11 คุณสามารถดูข้อมูลนักเรียน ติดต่อคุณครู และเช็คตารางสอนได้จากเมนูด้านล่าง</p>
+            </div>
+            <div class="card glass">
+                <h2><i class="fa-solid fa-bullhorn"></i> ประกาศล่าสุด</h2>
+                <p>• ยินดีต้อนรับนักเรียนทุกคนเข้าสู่ภาคเรียนใหม่<br>• สามารถตรวจสอบตารางเรียนอัปเดตล่าสุดได้ที่เมนู "ตารางสอน"</p>
+            </div>
+        </section>
+
+        <section id="student" class="page-section">
+            <div class="card glass">
+                <h2><i class="fa-solid fa-user-graduate"></i> ข้อมูลนักเรียน</h2>
+                <p>พื้นที่สำหรับรวบรวมเอกสารประกอบการเรียน ใบงาน และผลงานต่างๆ ของนักเรียนชั้นม.1/11</p>
+            </div>
+            <div class="card glass">
+                <h2><i class="fa-solid fa-list-check"></i> กฎระเบียบห้องเรียน</h2>
+                <p>• เข้าเรียนให้ตรงต่อเวลา<br>• แต่งกายให้ถูกระเบียบของโรงเรียน<br>• ช่วยกันรักษาความสะอาดในห้องเรียน</p>
+            </div>
+        </section>
+
+        <section id="teacher" class="page-section">
+            <div class="card glass">
+                <h2><i class="fa-solid fa-chalkboard-user"></i> รายชื่อคุณครู</h2>
+                <p>ทำความรู้จักและช่องทางการติดต่อคุณครูประจำวิชาต่างๆ ของห้องเรียน ม.1/11</p>
+                <div style="margin-top: 15px; padding: 18px; background: rgba(255,255,255,0.6); border-radius: 12px; border: 1px solid rgba(255,255,255,0.5);">
+                    <p style="color: var(--text-main); font-weight: 500; margin-bottom: 8px;"><i class="fa-solid fa-circle-user" style="color: var(--accent); margin-right: 8px;"></i>ครูกฤตลักษณ์ (ครูบิว)</p>
+                    <p style="color: var(--text-main); font-weight: 500;"><i class="fa-solid fa-circle-user" style="color: var(--accent); margin-right: 8px;"></i>ครูแพร</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="schedule" class="page-section">
+            <div class="card glass">
+                <h2><i class="fa-regular fa-calendar-days"></i> ตารางสอน ม.1/11</h2>
+                <p>สามารถใช้นิ้วเลื่อนซ้าย-ขวา เพื่อดูตารางสอนแบบเต็มๆ ได้เลยครับ</p>
+                
+                <div class="schedule-container">
+                    <img src="schedule.jpg" alt="ตารางสอน ม.1/11" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\'padding: 30px; text-align: center; color: #64748b; background: rgba(255,255,255,0.5); border-radius: 12px; border: 2px dashed #cbd5e1;\'>กรุณาบันทึกรูปตารางสอนเป็นชื่อ <b>schedule.jpg</b> แล้วนำมาไว้ในโฟลเดอร์เดียวกับไฟล์นี้</div>';">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="glass">
+        <div class="nav-item active" onclick="switchTab('home', this)">
+            <i class="fa-solid fa-house"></i>
+            <span>หน้าแรก</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('student', this)">
+            <i class="fa-solid fa-user-graduate"></i>
+            <span>นักเรียน</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('teacher', this)">
+            <i class="fa-solid fa-chalkboard-user"></i>
+            <span>คุณครู</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('schedule', this)">
+            <i class="fa-regular fa-calendar-days"></i>
+            <span>ตารางสอน</span>
+        </div>
+    </nav>
+
+    <script>
+        function switchTab(tabId, element) {
+            // ซ่อนทุกหน้า
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // เอาสถานะ active ออกจากเมนูทั้งหมด
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // แสดงหน้าที่เลือก และไฮไลท์เมนูที่กด
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+            
+            // เลื่อนหน้าจอกลับไปด้านบนสุดแบบนุ่มนวล
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ฟังก์ชันเมื่อกดปุ่มกล้องสแกน QR Code
+        function startQRScanner() {
+            alert('ระบบสแกน QR Code กำลังเปิดใช้งาน...');
+            // คุณสามารถเขียนโค้ดเรียกใช้งานกล้องหรือคลังภาพเพื่อสแกน QR Code เพิ่มเติมตรงนี้ได้เลยครับ
+        }
+    </script>
+</body>
+</html>
